@@ -182,10 +182,7 @@ export const Scene: React.FC<{
 					<directionalLight color={0xffffff} position={[0.5, 0.5, 1]} />
 					<pointLight color={0xffffff} position={[0, 0, 100]} />
 					<Suspense fallback={null}>
-						<Lava />
-						<RotatingSphere />
-						<Sky distance={450000} sunPosition={[0, 1, 0]} inclination={0} azimuth={0.25} />
-						<Effects />
+
 						<TextMesh />
 					</Suspense>
 				</ThreeCanvas>
