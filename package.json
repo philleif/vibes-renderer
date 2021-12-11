@@ -22,6 +22,7 @@
 		"axios": "^0.24.0",
 		"eslint": "^7.15.0",
 		"express": "^4.17.1",
+		"express-rate-limit": "^5.5.1",
 		"form-data": "^4.0.0",
 		"postprocessing": "^6.23.3",
 		"prettier": "^2.2.1",
