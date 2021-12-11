@@ -60,7 +60,7 @@ app.get(
 		const imageFormat = getImageType(req.params[Params.format]);
 
 		res.set('content-type', getMimeType(imageFormat));
-
+		console.log('1')
 		// Calculate a unique identifier for our image,
 		// if it exists, return it from cache
 		const hash = getImageHash(
@@ -70,7 +70,7 @@ app.get(
 				inputProps,
 			})
 		);
-
+		console.log('2')
 		if (await isInCache(hash)) {
 			const file = await getFromCache(hash);
 			return sendFile(res, file);
@@ -81,6 +81,7 @@ app.get(
 		const webpackBundle = await webpackBundling;
 		const composition = await getComp(compName, inputProps);
 		await new Promise<void>((resolve, reject) => {
+			console.log('3')
 			renderStill({
 				composition,
 				webpackBundle,
