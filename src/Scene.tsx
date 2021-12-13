@@ -1,18 +1,20 @@
-import {getVideoMetadata, VideoMetadata} from '@remotion/media-utils';
-import {ThreeCanvas, useVideoTexture} from '@remotion/three';
-import React, {useEffect, useRef, useState, useMemo, Suspense} from 'react';
+import { getVideoMetadata, VideoMetadata } from '@remotion/media-utils';
+import { ThreeCanvas, useVideoTexture } from '@remotion/three';
+import React, { useEffect, useRef, useState, useMemo, Suspense } from 'react';
 import { PerspectiveCamera, GradientTexture, Sky, Plane } from '@react-three/drei'
 import { MarchingCubes } from './helpers/MarchingCubes';
 import JSONfont from './assets/fonts/Anton_Regular.json';
 import * as THREE from 'three';
 import { AbsoluteFill, useVideoConfig, Video, useCurrentFrame, spring, interpolate } from 'remotion';
-import {FontLoader} from './helpers/FontLoader';
+import { FontLoader } from './helpers/FontLoader';
 import { TextGeometry } from './helpers/TextGeometry'
-import { Canvas,
-  extend,
-  useFrame,
-  useLoader,
-  useThree } from '@react-three/fiber'
+import {
+	Canvas,
+	extend,
+	useFrame,
+	useLoader,
+	useThree
+} from '@react-three/fiber'
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import { BlurPass } from "postprocessing";
 
@@ -50,9 +52,9 @@ function getRandomColor() {
 	return colors[Math.floor(Math.random() * colors.length)];
 }
 
-const SPHERE_COLOR_START = getRandomColor()[0];
-const SPHERE_COLOR_MIDDLE = getRandomColor()[1];
-const SPHERE_COLOR_END = getRandomColor()[2];
+const SPHERE_COLOR_START = '#FF0000';
+const SPHERE_COLOR_MIDDLE = '#FFFF00';
+const SPHERE_COLOR_END = '#000000';
 const SPHERE_OPACITY = 0.6;
 const TEXT_COLOR = SPHERE_COLOR_END;
 const BACKGROUND_COLOR = 0x000000;
@@ -73,35 +75,13 @@ const videoStyle: React.CSSProperties = {
 	opacity: 0,
 };
 
-function Background() {
-	const geometry = new THREE.CircleGeometry( 500, 32 );
-	const circle = new THREE.Mesh( geometry );
-
-	return (
-		<mesh visible position={[0, 0, 0]} castShadow>
-				<circleGeometry attach="geometry" args={[500, 32]} />
-				<meshPhysicalMaterial
-					attach="material"
-					reflectivity={0}
-				>
-				<GradientTexture
-					stops={[0, 0.5, 1]} // As many stops as you want
-					colors={[SPHERE_COLOR_START, SPHERE_COLOR_MIDDLE, SPHERE_COLOR_END]} // Colors need to match the number of stops
-					size={1024} // Size is optional, default = 1024
-				/></meshPhysicalMaterial>
-				</mesh>
-
-	)
-}
-
-function TextMesh({ text }) {
-  // load in font
+function reduceFontSize(text) {
 	const loader = new FontLoader();
-	const font = loader.parse( JSONfont );
-  // configure font mesh
-  const textOptions = {
+	const font = loader.parse(JSONfont);
+	let fontSize = 0;
+	let textOptions = {
 		font: font,
-		size: 100,
+		size: 200,
 		height: 20,
 		curveSegments: 50,
 		bevelThickness: 1,
@@ -109,34 +89,85 @@ function TextMesh({ text }) {
 		bevelEnabled: true
 	};
 
-	let textGeo = new TextGeometry(text, textOptions )
-	
-	textGeo.computeBoundingBox()
+	let textGeo = new TextGeometry(text, textOptions);
+	textGeo.computeBoundingBox();
+	let textSize = textGeo.boundingBox.max.x;
 
-  const frame = useCurrentFrame();
-  const {fps, durationInFrames} = useVideoConfig();
 
-  const time = interpolate(
-    frame,
-    [0, durationInFrames],
-    [0, Math.PI * 12]
-  );
-	
+	while (textSize > 360) {
+		textOptions.size -= 10;
+		textGeo = new TextGeometry(text, textOptions);
+		textGeo.computeBoundingBox();
+		textSize = textGeo.boundingBox.max.x;
+		fontSize = textOptions.size;
+	}
+
+	return fontSize;
+}
+
+function Background() {
+	const geometry = new THREE.CircleGeometry(100, 12);
+
+	return (
+		<mesh visible position={[0, 0, 0]} castShadow>
+			<circleGeometry attach="geometry" args={[500, 32]} />
+			<meshPhysicalMaterial
+				attach="material"
+				reflectivity={0}
+			>
+				<GradientTexture
+					stops={[0, 0.5, 1]} // As many stops as you want
+					colors={[SPHERE_COLOR_START, SPHERE_COLOR_MIDDLE, SPHERE_COLOR_END]} // Colors need to match the number of stops
+					size={1024} // Size is optional, default = 1024
+				/></meshPhysicalMaterial>
+		</mesh>
+
+	)
+}
+
+function TextMesh({ text }) {
+	// load in font
+	const loader = new FontLoader();
+	const font = loader.parse(JSONfont);
+
+	// configure font mesh
+	let textOptions = {
+		font: font,
+		size: reduceFontSize(text),
+		height: 20,
+		curveSegments: 50,
+		bevelThickness: 1,
+		bevelSize: 1,
+		bevelEnabled: true
+	};
+
+	const textGeo = new TextGeometry(text, textOptions);
+	textGeo.computeBoundingBox();
+
+	const frame = useCurrentFrame();
+	const { fps, durationInFrames } = useVideoConfig();
+
+	const time = interpolate(
+		frame,
+		[0, durationInFrames],
+		[0, Math.PI * 12]
+	);
+
 	textGeo.center();
 	textGeo.rotateX(Math.sin(time / 4) * 0.5);
-	
+
 	return (
 		<mesh position={[0, 0, 250]}>
 			<primitive object={textGeo} attach="geometry" />
 			<meshPhysicalMaterial
-					attach="material"
-					roughness={0}
-					metalness={0}
-					reflectivity={1}
-					color={TEXT_COLOR}
-				 />
-    </mesh>
-  );
+				attach="material"
+				roughness={0}
+				metalness={0}
+				reflectivity={1}
+				color={TEXT_COLOR}
+			/>
+		</mesh>
+	);
 }
 
 type lavaProps = {
@@ -145,36 +176,36 @@ type lavaProps = {
 const Lava: React.FC<lavaProps> = ({
 	children,
 	...otherProps
-}) => {		
+}) => {
 	const material = new THREE.MeshPhysicalMaterial({ roughness: 10, metalness: 0, reflectivity: 0, color: new THREE.Color(BUBBLE_COLOR).convertSRGBToLinear() })
 
-  let resolution = 28;
-  let numblobs = 10;
-  let effect = new MarchingCubes(resolution, material, true, true, 100000);
-  effect.position.set(0, 0, 0);
-  effect.scale.set(150, 150, 150);
-  effect.isolation = 80;
+	let resolution = 28;
+	let numblobs = 10;
+	let effect = new MarchingCubes(resolution, material, true, true, 100000);
+	effect.position.set(0, 0, 0);
+	effect.scale.set(150, 150, 150);
+	effect.isolation = 80;
 
-  const frame = useCurrentFrame();
-  const {fps, durationInFrames} = useVideoConfig();
+	const frame = useCurrentFrame();
+	const { fps, durationInFrames } = useVideoConfig();
 
-  const time = interpolate(
-    frame,
-    [0, durationInFrames * 4],
-    [0, Math.PI * 6]
-  );
+	const time = interpolate(
+		frame,
+		[0, durationInFrames * 4],
+		[0, Math.PI * 6]
+	);
 
-  const subtract = 8;
-  const strength = 2 / ((Math.sqrt(numblobs) - 1) / 4 + 1);
+	const subtract = 8;
+	const strength = 2 / ((Math.sqrt(numblobs) - 1) / 4 + 1);
 
-  for (let i = 0; i < numblobs; i++) {
-    const ballx = Math.sin(i + 1.26 * time * (1.03 + 0.5 * Math.cos(0.21 * i))) * 0.27 + 0.5;
-    const bally = Math.abs(Math.cos(i + 1.12 * time * Math.cos(1.22 + 0.1424 * i))) * 0.77 + 0.1;
-    const ballz = Math.cos(i + 1.32 * time * 0.1 * Math.sin((0.92 + 0.53 * i))) * 0.27 + 0.5;
-    effect.addBall(ballx, bally, ballz, strength, subtract);
-  }
+	for (let i = 0; i < numblobs; i++) {
+		const ballx = Math.sin(i + 1.26 * time * (1.03 + 0.5 * Math.cos(0.21 * i))) * 0.27 + 0.5;
+		const bally = Math.abs(Math.cos(i + 1.12 * time * Math.cos(1.22 + 0.1424 * i))) * 0.77 + 0.1;
+		const ballz = Math.cos(i + 1.32 * time * 0.1 * Math.sin((0.92 + 0.53 * i))) * 0.27 + 0.5;
+		effect.addBall(ballx, bally, ballz, strength, subtract);
+	}
 
-  return (
+	return (
 		<primitive object={effect} position={[0, 0, 0]} />
 	);
 };
@@ -195,38 +226,23 @@ function RotatingSphere() {
 					metalness={0.2}
 					reflectivity={0}
 				>
-				<GradientTexture
-					stops={[0, 0.5, 1]} // As many stops as you want
-					colors={[SPHERE_COLOR_START, SPHERE_COLOR_MIDDLE, SPHERE_COLOR_END]} // Colors need to match the number of stops
-					size={1024} // Size is optional, default = 1024
-				/></meshPhysicalMaterial>
-				</mesh>
-			</group>
+					<GradientTexture
+						stops={[0, 0.5, 1]} // As many stops as you want
+						colors={[SPHERE_COLOR_START, SPHERE_COLOR_MIDDLE, SPHERE_COLOR_END]} // Colors need to match the number of stops
+						size={1024} // Size is optional, default = 1024
+					/></meshPhysicalMaterial>
+			</mesh>
+		</group>
 	)
-}
-
-function Effects() {
-  return (
-    <>
-      <EffectComposer>
-        <Bloom
-          intensity={0}
-          luminanceThreshold={0.6}
-          luminanceSmoothing={0.1}
-          blurPass={new BlurPass()}
-        />
-      </EffectComposer>
-    </>
-  );
 }
 
 export const Scene: React.FC<{
 	videoSrc: string;
 	baseScale: number;
 	text: string;
-}> = ({baseScale, videoSrc, text}) => {
+}> = ({ baseScale, videoSrc, text }) => {
 	const videoRef = useRef<HTMLVideoElement>(null);
-	const {width, height} = useVideoConfig();
+	const { width, height } = useVideoConfig();
 	const [videoData, setVideoData] = useState<VideoMetadata | null>(null);
 
 	useEffect(() => {
@@ -248,7 +264,6 @@ export const Scene: React.FC<{
 					<Suspense fallback={null}>
 						<Lava />
 						<RotatingSphere />
-						<Effects />
 						<TextMesh text={text} />
 						<Background />
 					</Suspense>
@@ -257,6 +272,3 @@ export const Scene: React.FC<{
 		</AbsoluteFill>
 	);
 };
-//					<directionalLight color={DIRECTIONAL_COLOR} position={[1, 1, 1]} />
-//					<pointLight color={POINT_COLOR} position={[0, 0, 100]} />
-//<Sky distance={450000} sunPosition={[0, 1, 0]} inclination={0} azimuth={0.25} />
