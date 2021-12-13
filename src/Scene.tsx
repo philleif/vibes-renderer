@@ -20,50 +20,9 @@ import { BlurPass } from "postprocessing";
 
 extend({ TextGeometry });
 
-const colors = [
-	['#00FFFF', '#FF0000', '#FFFFFF'],
-	['#CDFFFF', '#C21900', '#82E585'],
-	['#2C00C0', '#FF0100', '#3A00FF'],
-	['#000000', '#FF0000', '#FFFFFF'],
-	['#000000', '#0000FF', '#FFFFFF'],
-	['#FF95FF', '#FF95FF', '#FF0095'],
-	['#DC6032', '#952C5A', '#FFD600'],
-	['#000000', '#000000', '#3DFF00'],
-	['#1188DD', '#1188DD', '#FFFFFF'],
-	['#000000', '#00FFFF', '#FFFFFF'],
-	['#000000', '#0000FF', '#00FF00'],
-	['#AEBCBC', '#00E0E0', '#E0519D'],
-	['#5208E7', '#8CA5E7', '#317B00'],
-	['#FF0000', '#000000', '#FF0000'],
-	['#4658B0', '#FFFFFF', '#35237B'],
-	['#F35C22', '#0B2B41', '#114567'],
-	['#44CCEE', '#EE9988', '#44CCEE'],
-	['#0033FF', '#0088FF', '#FFFFFF'],
-	['#000000', '#13396F', '#91E1FC'],
-	['#FFFFFF', '#0000FF', '#FF00FF'],
-	['#B4B4B4', '#0000D8', '#FF0000'],
-	['#00C4C8', '#000000', '#0000C8'],
-	['#640504', '#FFFF00', '#640504'],
-	['#FFFFFF', '#000000', '#FFFFFF'],
-	['#FF0000', '#FFFF00', '#000000'],
-]
-
-function getRandomColor() {
-	return colors[Math.floor(Math.random() * colors.length)];
-}
-
-const SPHERE_COLOR_START = '#FF0000';
-const SPHERE_COLOR_MIDDLE = '#FFFF00';
-const SPHERE_COLOR_END = '#000000';
+let COLOR_START, COLOR_MIDDLE, COLOR_END;
 const SPHERE_OPACITY = 0.6;
-const TEXT_COLOR = SPHERE_COLOR_END;
-const BACKGROUND_COLOR = 0x000000;
-const SKY_COLOR = 0xffffff;
-const GROUND_COLOR = 0xffffff;
-const BUBBLE_COLOR = SPHERE_COLOR_MIDDLE;
 const AMBIENT_COLOR = 0xffffff;
-const FOG_COLOR = 0xffffff;
-const POINT_COLOR = 0xffffff;
 const DIRECTIONAL_COLOR = 0xffffff;
 
 const container: React.CSSProperties = {
@@ -117,7 +76,7 @@ function Background() {
 			>
 				<GradientTexture
 					stops={[0, 0.5, 1]} // As many stops as you want
-					colors={[SPHERE_COLOR_START, SPHERE_COLOR_MIDDLE, SPHERE_COLOR_END]} // Colors need to match the number of stops
+					colors={[COLOR_START, COLOR_MIDDLE, COLOR_END]} // Colors need to match the number of stops
 					size={1024} // Size is optional, default = 1024
 				/></meshPhysicalMaterial>
 		</mesh>
@@ -164,7 +123,7 @@ function TextMesh({ text }) {
 				roughness={0}
 				metalness={0}
 				reflectivity={1}
-				color={TEXT_COLOR}
+				color={COLOR_END}
 			/>
 		</mesh>
 	);
@@ -177,7 +136,7 @@ const Lava: React.FC<lavaProps> = ({
 	children,
 	...otherProps
 }) => {
-	const material = new THREE.MeshPhysicalMaterial({ roughness: 10, metalness: 0, reflectivity: 0, color: new THREE.Color(BUBBLE_COLOR).convertSRGBToLinear() })
+	const material = new THREE.MeshPhysicalMaterial({ roughness: 10, metalness: 0, reflectivity: 0, color: new THREE.Color(COLOR_START).convertSRGBToLinear() })
 
 	let resolution = 28;
 	let numblobs = 10;
@@ -228,7 +187,7 @@ function RotatingSphere() {
 				>
 					<GradientTexture
 						stops={[0, 0.5, 1]} // As many stops as you want
-						colors={[SPHERE_COLOR_START, SPHERE_COLOR_MIDDLE, SPHERE_COLOR_END]} // Colors need to match the number of stops
+						colors={[COLOR_START, COLOR_MIDDLE, COLOR_END]} // Colors need to match the number of stops
 						size={1024} // Size is optional, default = 1024
 					/></meshPhysicalMaterial>
 			</mesh>
@@ -240,10 +199,19 @@ export const Scene: React.FC<{
 	videoSrc: string;
 	baseScale: number;
 	text: string;
-}> = ({ baseScale, videoSrc, text }) => {
+	colorstart: string;
+	colormiddle: string;
+	colorend: string;
+}> = ({ baseScale, videoSrc, text, colorstart, colormiddle, colorend }) => {
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const { width, height } = useVideoConfig();
 	const [videoData, setVideoData] = useState<VideoMetadata | null>(null);
+	
+	console.log(colorend);
+
+	COLOR_START = colorstart;
+	COLOR_MIDDLE = colormiddle;
+	COLOR_END = colorend;
 
 	useEffect(() => {
 		getVideoMetadata(videoSrc)

@@ -6,7 +6,8 @@
 		"start": "remotion preview src/index.tsx",
 		"build": "remotion render src/index.tsx Scene out/video.mp4",
 		"upgrade": "remotion upgrade",
-		"test": "eslint src --ext ts,tsx,js,jsx && tsc"
+		"test": "eslint src --ext ts,tsx,js,jsx && tsc",
+		"server": "ts-node-script server.tsx"
 	},
 	"repository": {},
 	"license": "UNLICENSED",

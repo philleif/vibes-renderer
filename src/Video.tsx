@@ -29,14 +29,17 @@ export const RemotionVideo: React.FC = () => {
 			<Composition
 				id="Scene"
 				component={Scene}
-				durationInFrames={80}
+				durationInFrames={80} //80
 				fps={30}
 				width={1080}
 				height={1080}
 				defaultProps={{
 					videoSrc: deviceType === 'phone' ? phone : tablet,
 					baseScale: deviceType === 'phone' ? 1 : 1.8,
-					text: "VIBES"
+					text: "VIBES",
+					colorstart: "#ff0000",
+					colormiddle: "#00FF00",
+					colorend: "#0000FF"
 				}}
 			/>
 		</>

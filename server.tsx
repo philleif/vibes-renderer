@@ -24,6 +24,7 @@ const cache = new Map<string, string>();
 app.get('/', async (req, res) => {
 	try {
 		const bundled = await bundle(path.join(__dirname, './src/index.tsx'));
+		console.log(req.query);
 		const comps = await getCompositions(bundled, {inputProps: req.query});
 		const video = comps.find((c) => c.id === compositionId);
 
