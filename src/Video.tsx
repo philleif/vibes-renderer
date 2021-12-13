@@ -36,6 +36,7 @@ export const RemotionVideo: React.FC = () => {
 				defaultProps={{
 					videoSrc: deviceType === 'phone' ? phone : tablet,
 					baseScale: deviceType === 'phone' ? 1 : 1.8,
+					text: "what's your vibe?"
 				}}
 			/>
 		</>

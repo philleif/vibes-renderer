@@ -5,6 +5,7 @@ import {bundle} from '@remotion/bundler';
 import {
 	getCompositions,
 	renderFrames,
+	renderStill,
 	stitchFramesToVideo,
 } from '@remotion/renderer';
 import express from 'express';
@@ -25,6 +26,12 @@ app.get('/', async (req, res) => {
 		const bundled = await bundle(path.join(__dirname, './src/index.tsx'));
 		const comps = await getCompositions(bundled, {inputProps: req.query});
 		const video = comps.find((c) => c.id === compositionId);
+
+		let jsonResponse = {
+			image: '',
+			video: ''
+		};
+
 		if (!video) {
 			throw new Error(`No video called ${compositionId}`);
 		}
@@ -60,26 +67,61 @@ app.get('/', async (req, res) => {
 			assetsInfo,
 		});
 
+		const stillOutput = path.join(tmpDir, 'out.png');
+		console.log('rendering still');
+		await renderStill({
+				composition: video,
+				webpackBundle: bundled,
+				output: stillOutput,
+				inputProps: req.query,
+				imageFormat: 'png',
+				onError: (err) => {
+					//reject(err);
+				},
+			})
+
 		// Upload to IPFS/Pinata
+
+
 		const url = `https://api.pinata.cloud/pinning/pinFileToIPFS`;
-		let data = new FormData();
-    data.append('file', fs.createReadStream(path.join(tmpDir, 'out.mp4')));
+		const mediaUrl = 'https://gateway.pinata.cloud/ipfs/'
+		let imageData = new FormData();
+    imageData.append('file', fs.createReadStream(path.join(tmpDir, 'out.png')));
 
 		await axios
-			.post(url, data, {
+			.post(url, imageData, {
 					maxBodyLength: 'Infinity', //this is needed to prevent axios from erroring out with large files
 					headers: {
-							'Content-Type': `multipart/form-data; boundary=${data._boundary}`,
+							'Content-Type': `multipart/form-data; boundary=${imageData._boundary}`,
 							pinata_api_key: process.env.PINATA_API_KEY,
 							pinata_secret_api_key: process.env.PINATA_API_SECRET
 					}
 			})
 			.then(async (response) => {
-					//handle response here
+					jsonResponse.image = mediaUrl + response.data.IpfsHash;
+			})
+			.catch(function (error) {
+					//handle error here
+				console.log(error)
+				res.json({error: error});
+			});
+		
+		let videoData = new FormData();
+    videoData.append('file', fs.createReadStream(path.join(tmpDir, 'out.mp4')));
+
+		await axios
+			.post(url, videoData, {
+					maxBodyLength: 'Infinity', //this is needed to prevent axios from erroring out with large files
+					headers: {
+							'Content-Type': `multipart/form-data; boundary=${videoData._boundary}`,
+							pinata_api_key: process.env.PINATA_API_KEY,
+							pinata_secret_api_key: process.env.PINATA_API_SECRET
+					}
+			})
+			.then(async (response) => {
 					cache.set(JSON.stringify(req.query), finalOutput);
-					//sendFile(finalOutput);
 					console.log(response.data);
-					res.json({ipfs: response.data.IpfsHash});
+					jsonResponse.video = mediaUrl + response.data.IpfsHash;
 					console.log('Video rendered and sent!');
 			})
 			.catch(function (error) {
@@ -87,14 +129,14 @@ app.get('/', async (req, res) => {
 				console.log(error)
 				res.json({error: error});
 			});
-
-
-	} catch (err) {
-		console.error(err);
-		res.json({
-			error: err,
-		});
-	}
+		
+			res.json(jsonResponse);
+		} catch (err) {
+			console.error(err);
+			res.json({
+				error: err,
+			});
+		}
 });
 
 app.listen(port);

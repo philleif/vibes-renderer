@@ -27,14 +27,14 @@ const videoStyle: React.CSSProperties = {
 	opacity: 0,
 };
 
-function TextMesh() {
+function TextMesh({ text }) {
   // load in font
 	const loader = new FontLoader();
 	const font = loader.parse( JSONfont );
   // configure font mesh
   const textOptions = {
 		font: font,
-		size: 60,
+		size: 40,
 		height: 20,
 		curveSegments: 50,
 		bevelThickness: 2,
@@ -42,7 +42,7 @@ function TextMesh() {
 		bevelEnabled: true
 	};
 
-	let textGeo = new TextGeometry("GO OFF QUEEN", textOptions )
+	let textGeo = new TextGeometry(text, textOptions )
 	
 	textGeo.computeBoundingBox()
 	
@@ -159,7 +159,8 @@ function Effects() {
 export const Scene: React.FC<{
 	videoSrc: string;
 	baseScale: number;
-}> = ({baseScale, videoSrc}) => {
+	text: string;
+}> = ({baseScale, videoSrc, text}) => {
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const {width, height} = useVideoConfig();
 	const [videoData, setVideoData] = useState<VideoMetadata | null>(null);
@@ -186,7 +187,7 @@ export const Scene: React.FC<{
 						<RotatingSphere />
 						<Sky distance={450000} sunPosition={[0, 1, 0]} inclination={0} azimuth={0.25} />
 						<Effects />
-						<TextMesh />
+						<TextMesh text={text} />
 					</Suspense>
 				</ThreeCanvas>
 			) : null}
