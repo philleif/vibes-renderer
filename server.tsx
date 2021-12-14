@@ -14,7 +14,8 @@ import os from 'os';
 import path from 'path';
 const FormData = require('form-data');
 const axios = require('axios');
-
+const cloudinary = require('cloudinary').v2;
+const Str = require('@supercharge/strings');
 const app = express();
 const port = process.env.PORT || 8000;
 const compositionId = 'Scene';
@@ -30,7 +31,8 @@ app.get('/', async (req, res) => {
 
 		let jsonResponse = {
 			image: '',
-			video: ''
+			video: '',
+			cdnUrl: ''
 		};
 
 		if (!video) {
@@ -56,7 +58,9 @@ app.get('/', async (req, res) => {
 			imageFormat: 'jpeg',
 		});
 
-		const finalOutput = path.join(tmpDir, 'out.mp4');
+		const fileName = Str.random(10);
+		
+		const finalOutput = path.join(tmpDir, fileName + '.mp4');
 		await stitchFramesToVideo({
 			dir: tmpDir,
 			force: true,
@@ -68,7 +72,7 @@ app.get('/', async (req, res) => {
 			assetsInfo,
 		});
 
-		const stillOutput = path.join(tmpDir, 'out.png');
+		const stillOutput = path.join(tmpDir, fileName + '.png');
 		console.log('rendering still');
 		await renderStill({
 				composition: video,
@@ -81,13 +85,24 @@ app.get('/', async (req, res) => {
 				},
 			})
 
+		// Upload to Cloudinary
+		cloudinary.uploader.upload(path.join(tmpDir, fileName + '.mp4'), 
+			{
+				resource_type: "video",
+				public_id: "vibes/" + fileName,
+				overwrite: true
+			},
+			function (error, result) {
+				console.log(result.secure_url, error)
+				jsonResponse.cdnUrl = result.secure_url;
+			});
+		
+		
 		// Upload to IPFS/Pinata
-
-
 		const url = `https://api.pinata.cloud/pinning/pinFileToIPFS`;
 		const mediaUrl = 'https://gateway.pinata.cloud/ipfs/'
 		let imageData = new FormData();
-    imageData.append('file', fs.createReadStream(path.join(tmpDir, 'out.png')));
+    imageData.append('file', fs.createReadStream(path.join(tmpDir, fileName + '.png')));
 
 		await axios
 			.post(url, imageData, {
@@ -108,7 +123,7 @@ app.get('/', async (req, res) => {
 			});
 		
 		let videoData = new FormData();
-    videoData.append('file', fs.createReadStream(path.join(tmpDir, 'out.mp4')));
+    videoData.append('file', fs.createReadStream(path.join(tmpDir, fileName + '.mp4')));
 
 		await axios
 			.post(url, videoData, {

@@ -26,7 +26,7 @@ const AMBIENT_COLOR = 0xffffff;
 const DIRECTIONAL_COLOR = 0xffffff;
 
 const container: React.CSSProperties = {
-	backgroundColor: 'white',
+	backgroundColor: 'transparent',
 };
 
 const videoStyle: React.CSSProperties = {

@@ -4,7 +4,7 @@
 	"description": "A React Three Fiber Project",
 	"scripts": {
 		"start": "remotion preview src/index.tsx",
-		"build": "remotion render src/index.tsx Scene out/video.mp4",
+		"build": "remotion render src/index.tsx Scene out/video.webm",
 		"upgrade": "remotion upgrade",
 		"test": "eslint src --ext ts,tsx,js,jsx && tsc",
 		"server": "ts-node-script server.tsx"
@@ -20,11 +20,14 @@
 		"@remotion/media-utils": "^2.5.4",
 		"@remotion/renderer": "^2.5.4",
 		"@remotion/three": "^2.5.4",
+		"@supercharge/strings": "^1.24.0",
 		"axios": "^0.24.0",
+		"cloudinary": "^1.27.1",
 		"eslint": "^7.15.0",
 		"express": "^4.17.1",
 		"express-rate-limit": "^5.5.1",
 		"form-data": "^4.0.0",
+		"md5": "^2.3.0",
 		"postprocessing": "^6.23.3",
 		"prettier": "^2.2.1",
 		"react": "^17.0.2",

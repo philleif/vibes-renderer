@@ -36,10 +36,10 @@ export const RemotionVideo: React.FC = () => {
 				defaultProps={{
 					videoSrc: deviceType === 'phone' ? phone : tablet,
 					baseScale: deviceType === 'phone' ? 1 : 1.8,
-					text: "VIBES",
-					colorstart: "#ff0000",
-					colormiddle: "#00FF00",
-					colorend: "#0000FF"
+					text: "ZADDY",
+					colorstart: "#5208E7",
+					colormiddle: "#8CA5E7",
+					colorend: "#317B00"
 				}}
 			/>
 		</>
