@@ -53,7 +53,7 @@ function reduceFontSize(text) {
 	let textSize = textGeo.boundingBox.max.x;
 
 
-	while (textSize > 400) {
+	while (textSize > 380) {
 		textOptions.size -= 10;
 		textGeo = new TextGeometry(text, textOptions);
 		textGeo.computeBoundingBox();
@@ -67,17 +67,28 @@ function reduceFontSize(text) {
 function Background() {
 	const geometry = new THREE.CircleGeometry(100, 12);
 
+	const frame = useCurrentFrame();
+	const { fps, durationInFrames } = useVideoConfig();
+
+	const time = interpolate(
+		frame,
+		[0, durationInFrames],
+		[0, Math.PI * 12]
+	);
+//			<circleGeometry attach="geometry" args={[500, 32]} />
+
 	return (
 		<mesh visible position={[0, 0, 0]} castShadow>
-			<circleGeometry attach="geometry" args={[500, 32]} />
+			<boxBufferGeometry attach="geometry" args={[1000, 1528]} />
 			<meshPhysicalMaterial
 				attach="material"
 				reflectivity={0}
 			>
 				<GradientTexture
-					stops={[0, 0.5, 1]} // As many stops as you want
-					colors={[COLOR_START, COLOR_MIDDLE, COLOR_END]} // Colors need to match the number of stops
-					size={1024} // Size is optional, default = 1024
+					offset={[0, ((frame + 4)/90) - 0.4]}
+					stops={[0, 0.33, 0.66, 1]} // As many stops as you want
+					colors={[COLOR_MIDDLE, COLOR_START, COLOR_MIDDLE, COLOR_START]} // Colors need to match the number of stops
+					size={764} // Size is optional, default = 1024
 				/></meshPhysicalMaterial>
 		</mesh>
 
@@ -240,6 +251,7 @@ export const Scene: React.FC<{
 					<Suspense fallback={null}>
 						<RotatingSphere />
 						<TextMesh text={text} />
+						<Background />
 					</Suspense>
 				</ThreeCanvas>
 			) : null}
