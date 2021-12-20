@@ -21,7 +21,7 @@ import { BlurPass } from "postprocessing";
 extend({ TextGeometry });
 
 let COLOR_START, COLOR_MIDDLE, COLOR_END;
-const SPHERE_OPACITY = 0.6;
+const SPHERE_OPACITY = 1; // 0.6
 const AMBIENT_COLOR = 0xffffff;
 const DIRECTIONAL_COLOR = 0xffffff;
 
@@ -53,7 +53,7 @@ function reduceFontSize(text) {
 	let textSize = textGeo.boundingBox.max.x;
 
 
-	while (textSize > 360) {
+	while (textSize > 400) {
 		textOptions.size -= 10;
 		textGeo = new TextGeometry(text, textOptions);
 		textGeo.computeBoundingBox();
@@ -113,10 +113,10 @@ function TextMesh({ text }) {
 	);
 
 	textGeo.center();
-	textGeo.rotateX(Math.sin(time / 4) * 0.5);
+	textGeo.rotateX(Math.sin(time / 6) * 0.5);
 
 	return (
-		<mesh position={[0, 0, 250]}>
+		<mesh position={[0, 0, 300]}>
 			<primitive object={textGeo} attach="geometry" />
 			<meshPhysicalMaterial
 				attach="material"
@@ -169,14 +169,22 @@ const Lava: React.FC<lavaProps> = ({
 	);
 };
 
-
 function RotatingSphere() {
+	const frame = useCurrentFrame();
+	const { fps, durationInFrames } = useVideoConfig();
+
+	const time = interpolate(
+		frame,
+		[0, durationInFrames],
+		[0, Math.PI * 24]
+	);
+
 	return (
 		<group
-			rotation={[0, 0, 0]}
+			rotation={[0, time/(Math.PI * 4), time/(Math.PI * 4)]}
 		>
 			<mesh visible position={[0, 0, 0]} castShadow>
-				<sphereGeometry attach="geometry" args={[200, 200, 200]} />
+				<sphereGeometry attach="geometry" args={[250, 250, 250]} />
 				<meshPhysicalMaterial
 					attach="material"
 					opacity={SPHERE_OPACITY}
@@ -230,13 +238,13 @@ export const Scene: React.FC<{
 					<ambientLight intensity={0.75} color={AMBIENT_COLOR} />
 					<directionalLight color={DIRECTIONAL_COLOR} position={[1, 1, 1]} />
 					<Suspense fallback={null}>
-						<Lava />
 						<RotatingSphere />
 						<TextMesh text={text} />
-						<Background />
 					</Suspense>
 				</ThreeCanvas>
 			) : null}
 		</AbsoluteFill>
 	);
-};
+	};
+	//						<Background />
+	// 						<Lava />
