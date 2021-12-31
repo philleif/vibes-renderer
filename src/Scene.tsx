@@ -3,7 +3,14 @@ import { ThreeCanvas, useVideoTexture } from '@remotion/three';
 import React, { useEffect, useRef, useState, useMemo, Suspense } from 'react';
 import { PerspectiveCamera, GradientTexture, Sky, Plane } from '@react-three/drei'
 import { MarchingCubes } from './helpers/MarchingCubes';
-import JSONfont from './assets/fonts/Anton_Regular.json';
+import AntonRegular from './assets/fonts/Anton_Regular.json';
+import PlayfairDisplay from './assets/fonts/Playfair_Display_Regular.json';
+import PtSerif from './assets/fonts/PT_Serif_Bold.json';
+import Poppins from './assets/fonts/Poppins_Bold.json';
+import ImperialScript from './assets/fonts/Imperial_Script_Regular.json';
+import Marker from './assets/fonts/Permanent_Marker_Regular.json';
+import AlphaSlab from './assets/fonts/Alfa_Slab_One_Regular.json';
+import SecularOne from './assets/fonts/Secular_One_Regular.json';
 import * as THREE from 'three';
 import { AbsoluteFill, useVideoConfig, Video, useCurrentFrame, spring, interpolate } from 'remotion';
 import { FontLoader } from './helpers/FontLoader';
@@ -34,9 +41,22 @@ const videoStyle: React.CSSProperties = {
 	opacity: 0,
 };
 
-function reduceFontSize(text) {
+const fonts = {
+	'anton': AntonRegular,
+	'playfair': PlayfairDisplay,
+	'pt-serif': PtSerif,
+	'poppins': Poppins,
+	'imperial': ImperialScript,
+	'marker': Marker,
+	'alpha-slab': AlphaSlab,
+	'secular-one': SecularOne,
+}
+
+let fittedFontSize = 0;
+
+function reduceFontSize(text, font) {
 	const loader = new FontLoader();
-	const font = loader.parse(JSONfont);
+
 	let fontSize = 0;
 	let textOptions = {
 		font: font,
@@ -48,17 +68,22 @@ function reduceFontSize(text) {
 		bevelEnabled: true
 	};
 
-	let textGeo = new TextGeometry(text, textOptions);
-	textGeo.computeBoundingBox();
-	let textSize = textGeo.boundingBox.max.x;
-
-
-	while (textSize > 380) {
-		textOptions.size -= 10;
-		textGeo = new TextGeometry(text, textOptions);
+	if (fittedFontSize == 0) {
+		let textGeo = new TextGeometry(text, textOptions);
 		textGeo.computeBoundingBox();
-		textSize = textGeo.boundingBox.max.x;
-		fontSize = textOptions.size;
+		let textSize = textGeo.boundingBox.max.x;
+
+		while (textSize > 380) {
+			textOptions.size -= 10;
+			textGeo = new TextGeometry(text, textOptions);
+			textGeo.computeBoundingBox();
+			textSize = textGeo.boundingBox.max.x;
+			fontSize = textOptions.size;
+		}
+
+		fittedFontSize = fontSize;
+	} else {
+		fontSize = fittedFontSize;
 	}
 
 	return fontSize;
@@ -85,7 +110,7 @@ function Background() {
 				reflectivity={0}
 			>
 				<GradientTexture
-					offset={[0, ((frame + 4)/90) - 0.4]}
+					offset={[0, ((frame + 4)/90) - 0.4]} // uncomment this to make the gradient move
 					stops={[0, 0.33, 0.66, 1]} // As many stops as you want
 					colors={[COLOR_MIDDLE, COLOR_START, COLOR_MIDDLE, COLOR_START]} // Colors need to match the number of stops
 					size={764} // Size is optional, default = 1024
@@ -95,15 +120,15 @@ function Background() {
 	)
 }
 
-function TextMesh({ text }) {
+function TextMesh({ text, font }) {
 	// load in font
 	const loader = new FontLoader();
-	const font = loader.parse(JSONfont);
+	const fontFace = loader.parse(fonts[font]);
 
 	// configure font mesh
 	let textOptions = {
-		font: font,
-		size: reduceFontSize(text),
+		font: fontFace,
+		size: reduceFontSize(text, fontFace),
 		height: 20,
 		curveSegments: 50,
 		bevelThickness: 1,
@@ -218,10 +243,11 @@ export const Scene: React.FC<{
 	videoSrc: string;
 	baseScale: number;
 	text: string;
+	font: string;
 	colorstart: string;
 	colormiddle: string;
 	colorend: string;
-}> = ({ baseScale, videoSrc, text, colorstart, colormiddle, colorend }) => {
+}> = ({ baseScale, videoSrc, text, colorstart, colormiddle, colorend, font }) => {
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const { width, height } = useVideoConfig();
 	const [videoData, setVideoData] = useState<VideoMetadata | null>(null);
@@ -250,7 +276,7 @@ export const Scene: React.FC<{
 					<directionalLight color={DIRECTIONAL_COLOR} position={[1, 1, 1]} />
 					<Suspense fallback={null}>
 						<RotatingSphere />
-						<TextMesh text={text} />
+						<TextMesh text={text} font={font} />
 						<Background />
 					</Suspense>
 				</ThreeCanvas>

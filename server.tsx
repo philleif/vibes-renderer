@@ -58,8 +58,8 @@ app.get('/', async (req, res) => {
 			imageFormat: 'jpeg',
 		});
 
-		const fileName = Str.random(10);
-		
+		//const fileName = Str.random(10);
+		const fileName = req.query.text;
 		const finalOutput = path.join(tmpDir, fileName + '.mp4');
 		await stitchFramesToVideo({
 			dir: tmpDir,
