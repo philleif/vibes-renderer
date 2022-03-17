@@ -34,10 +34,10 @@ export const RemotionVideo: React.FC = () => {
 				width={1080}
 				height={1080}
 				defaultProps={{
-					font: 'playfair',
+					font: 'marker',
 					videoSrc: deviceType === 'phone' ? phone : tablet,
 					baseScale: deviceType === 'phone' ? 1 : 1.8,
-					text: "champagne",
+					text: "SEXY",
 					colorstart: "#FF95FF",
 					colormiddle: "#FF95FF",
 					colorend: "#FF0095"
